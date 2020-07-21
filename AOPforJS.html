@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      // 引数の functionBefore を実行してから、本体 function を実行する
+      // function を返す関数
+      // beforeの返値は変更した引数で、この引数が本体 function に渡される
+      Function.prototype.before = function (functionBefore) {
+        var _this = this;
+        return function () {
+          var processedArgs = functionBefore.apply(this, arguments);
+          return _this.apply(this, processedArgs);
+        };
+      };
+
+      // 本体 function を実行してから、引数の functionAfter を実行する、
+      // function を返す関数
+      // after の引数は処理結果
+      Function.prototype.after = function (functionAfter) {
+        var _this = this;
+        return function () {
+          var result = _this.apply(this, arguments);
+          functionAfter.apply(this, result);
+          return result;
+        };
+      };
+
+      // window.open を、beforeを実行してから、window.open を実行する
+      // function に差し替える
+      window.open = window.open.before(function () {
+        console.log("start!");
+        console.log(arguments);
+        arguments[0] = arguments[0] + "search?q=AOP%20Javascript";
+        return arguments;
+      });
+
+      // window.open を、window.open を実行してから afterを実行する
+      // function に差し替える
+      window.open = window.open.after(function (result) {
+        console.log("end!");
+        console.log(result);
+      });
+
+      function openIt() {
+        window.open("https://www.google.com/");
+      }
+    </script>
+  </head>
+
+  <body>
+    <button onclick="openIt()">OPEN</button>
+  </body>
+</html>
